@@ -20,7 +20,7 @@ services:
     networks:
       - mynetwork
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/your_database_name
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/erp_db
       SPRING_DATASOURCE_USERNAME: erp_user
       SPRING_DATASOURCE_PASSWORD: Pedro@110904
 
