@@ -1,0 +1,8 @@
+CREATE TABLE product (
+id UUID PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+description VARCHAR(1000),
+price FLOAT NOT NULL,
+stock_quantity INT NOT NULL,
+barcode VARCHAR(255) NOT NULL UNIQUE
+);
