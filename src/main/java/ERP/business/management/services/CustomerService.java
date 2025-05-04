@@ -27,6 +27,12 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<CustomerDTO> findById(UUID id) {
+        return customerRepository.findById(id)
+                .map(this::convertToDTO);
+    }
+
+    @Transactional(readOnly = true)
     public List<CustomerDTO> findByCustomerType(CustomerType customerType) {
         return customerRepository.findByCustomerType(customerType).stream()
                 .map(this::convertToDTO)
