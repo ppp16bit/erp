@@ -102,6 +102,77 @@ public class SaleService {
     }
 
     @Transactional
+    public Optional<SaleDTO> update(UUID id, SaleDTO saleDTO) {
+        Optional<Sale> existingSaleOptional = saleRepository.findById(id);
+
+        if (existingSaleOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Sale existingSale = existingSaleOptional.get();
+
+        Optional<Customer> customerOptional = customerRepository.findById(saleDTO.getCustomerId());
+
+        if (customerOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        for (SaleItem item : existingSale.getItems()) {
+            productService.updateStock(item.getProduct().getId(), item.getQuantity());
+        }
+
+        existingSale.getItems().clear();
+
+        existingSale.setCustomer(customerOptional.get());
+        existingSale.setSaleDate(saleDTO.getSaleDate() != null ? saleDTO.getSaleDate() : existingSale.getSaleDate());
+
+        float totalValue = 0.0f;
+
+        List<SaleItem> newItems = new ArrayList<>();
+        for (SaleItemDTO itemDTO : saleDTO.getItems()) {
+            Optional<Product> productOptional = productRepository.findById(itemDTO.getProductId());
+
+            if (productOptional.isEmpty()) {
+
+                for (SaleItem processedItem : newItems) {
+                    productService.updateStock(processedItem.getProduct().getId(), processedItem.getQuantity());
+                }
+
+                return Optional.empty();
+            }
+
+            Product product = productOptional.get();
+
+            if (product.getStockQuantity() < itemDTO.getQuantity()) {
+
+                for (SaleItem processedItem : newItems) {
+                    productService.updateStock(processedItem.getProduct().getId(), processedItem.getQuantity());
+                }
+                return Optional.empty();
+            }
+
+            SaleItem saleItem = SaleItem.builder()
+                    .quantity(itemDTO.getQuantity())
+                    .unitprice(itemDTO.getUnitPrice() != null ? itemDTO.getUnitPrice() : product.getPrice())
+                    .product(product)
+                    .sale(existingSale)
+                    .build();
+
+            productService.updateStock(product.getId(), -itemDTO.getQuantity());
+
+            totalValue += saleItem.getUnitprice() * saleItem.getQuantity();
+
+            newItems.add(saleItem);
+        }
+
+        existingSale.getItems().addAll(newItems);
+        existingSale.setTotalValue(totalValue);
+
+        Sale updatedSale = saleRepository.save(existingSale);
+        return Optional.of(convertToDTO(updatedSale));
+    }
+
+    @Transactional
     public boolean delete(UUID id) {
         Optional<Sale> saleOptional = saleRepository.findById(id);
 
