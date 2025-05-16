@@ -42,6 +42,13 @@ public class SaleController {
                 .orElse(ResponseEntity.badRequest().build());
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<SaleDTO> updateSale(@PathVariable UUID id, @RequestBody SaleDTO saleDTO) {
+        return saleService.update(id, saleDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSale(@PathVariable UUID id) {
         if (saleService.delete(id)) {
